@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  stripeCustomerId String? 
+  credits      Int       @default(0)
+  createdAt    DateTime  @default(now())
+  jobs         Job[]
+  creditLedger CreditLedger[]
+}
+
+model CreditLedger {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  delta     Int
+  reason    String
+  createdAt DateTime @default(now())
+}
+
+model Job {
+  id         String   @id @default(cuid())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+  type       String
+  prompt     String
+  resultUrl  String?
+  cost       Int
+  status     String   @default("queued")
+  createdAt  DateTime @default(now())
+}
+
+model Subscription {
+  id               String   @id @default(cuid())
+  user             User     @relation(fields: [userId], references: [id])
+  userId           String
+  stripeSubscriptionId String @unique
+  status           String
+  createdAt        DateTime @default(now())
+}
